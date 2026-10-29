@@ -1,0 +1,26 @@
+{
+  "name": "college-quiz-raffle",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test lib/phone.test.ts",
+    "qr": "node scripts/generate-qr.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "qrcode": "^1.5.4",
+    "typescript": "^5.6.0"
+  }
+}
