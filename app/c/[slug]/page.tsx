@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import RegisterForm from "./RegisterForm";
+import ScanPing from "./ScanPing";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function CenterPage({ params }: { params: Promise<{ slug: s
 
   return (
     <main>
+      <ScanPing slug={center.slug} />
       <div className="card">
         <h1>College Quiz Challenge</h1>
         <p>Participate in the quiz and enter the raffle according to the campaign rules.</p>
