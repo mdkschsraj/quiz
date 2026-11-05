@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import RegisterForm from "./RegisterForm";
 import ScanPing from "./ScanPing";
+import { facebookUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,11 @@ export default async function CenterPage({ params }: { params: Promise<{ slug: s
       <div className="card">
         <h1>College Quiz Challenge</h1>
         <p>Participate in the quiz and enter the raffle according to the campaign rules.</p>
+        {facebookUrl() && (
+          <p>
+            <strong>Winners are announced live on <a href={facebookUrl() as string} target="_blank" rel="noopener noreferrer">our Facebook page</a>.</strong>
+          </p>
+        )}
         <RegisterForm centerSlug={center.slug} centerName={center.name} />
         <p className="muted" style={{ marginTop: 16 }}>
           Your details will be used to manage quiz participation and raffle eligibility.{" "}

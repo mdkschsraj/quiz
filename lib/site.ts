@@ -5,8 +5,10 @@ export function siteUrl(): string {
 
 // The campaign's Facebook page. Only https links on facebook.com / fb.com / fb.me are accepted,
 // so a typo in the setting can never send students somewhere else.
+export const DEFAULT_FACEBOOK_URL = "https://www.facebook.com/schs.rajshahi/";
+
 export function facebookUrl(): string | null {
-  const raw = (process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "").trim();
+  const raw = (process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "").trim() || DEFAULT_FACEBOOK_URL;
   try {
     const u = new URL(raw);
     const h = u.hostname.toLowerCase();

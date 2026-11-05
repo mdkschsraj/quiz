@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { db } from "@/lib/supabase";
 import { isUuid } from "@/lib/attempts";
 import { loadWinners, maskPhone } from "@/lib/drawData";
+import { facebookUrl } from "@/lib/site";
 import DrawReveal from "./DrawReveal";
 import type { RevealGroup } from "./DrawReveal";
 
@@ -41,5 +42,5 @@ export default async function PublicDraw({ params }: { params: Promise<{ id: str
       .map((w) => ({ name: w.name, phone: maskPhone(w.phone), center: w.center, score: `${w.score}/${w.total}` })),
   }));
 
-  return <DrawReveal title={draw.name} groups={groups} />;
+  return <DrawReveal title={draw.name} groups={groups} facebook={facebookUrl()} />;
 }

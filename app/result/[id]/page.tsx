@@ -44,9 +44,9 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
         <section className="rp-msg">
           <h1 className="rp-title">{perfect ? `Perfect score, ${first}.` : `Well played, ${first}.`}</h1>
+          <p className="rp-bold">Don&apos;t miss the live winner draw. It happens on our Facebook page.</p>
           <p className="rp-text">
-            Your answers are saved. We&apos;ll pick the winners in a live draw on our Facebook page, so you can watch it
-            happen together with everyone else who took part.
+            Your answers are saved. You&apos;ll watch the winners being picked live, together with everyone who took part.
           </p>
           <p className="rp-fair">
             Winners are chosen by computer from everyone who qualifies, and the results are shown publicly.

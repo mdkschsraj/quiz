@@ -6,7 +6,7 @@ export type RevealWinner = { name: string; phone: string; center: string; score:
 export type RevealGroup = { name: string; prize: string; winners: RevealWinner[] };
 
 // The winners were already chosen and saved by the server. This page only reveals them.
-export default function DrawReveal({ title, groups }: { title: string; groups: RevealGroup[] }) {
+export default function DrawReveal({ title, groups, facebook }: { title: string; groups: RevealGroup[]; facebook?: string | null }) {
   const total = useMemo(() => groups.reduce((n, g) => n + g.winners.length, 0), [groups]);
   const starts = useMemo(() => {
     let n = 0;
@@ -92,6 +92,11 @@ export default function DrawReveal({ title, groups }: { title: string; groups: R
             </div>
           ))}
           {phase === "done" && total > 0 && <p className="muted" style={{ textAlign: "center" }}>Congratulations to all winners!</p>}
+          {phase === "done" && facebook && (
+            <p style={{ textAlign: "center" }}>
+              <a href={facebook} target="_blank" rel="noopener noreferrer"><strong>Follow our Facebook page for the next draw.</strong></a>
+            </p>
+          )}
         </>
       )}
     </main>

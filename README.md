@@ -10,7 +10,7 @@ Next.js 15 + Supabase + Vercel.
 - Coaching-center QR links: `/c/<slug>`
 - Registration (name, phone, optional gender, center) with silent phone matching, no OTP
 - Timed quiz with random questions, server-enforced deadline and scoring, auto-submit at zero
-- Result page designed as a raffle ticket: score, a warm "watch the live draw" message, and a Facebook follow/share button (set `NEXT_PUBLIC_FACEBOOK_URL`)
+- Result page designed as a raffle ticket: score, a warm "watch the live draw" message, and a bold "watch the live draw on Facebook" message and a Facebook follow/share button (default page `schs.rajshahi`, override with `NEXT_PUBLIC_FACEBOOK_URL`). The page is also linked on the registration page and after the public draw reveal
 
 **Admin (`/admin`)**
 - Overview, Centers (create a center, unique QR as PNG/SVG, scan and participation counts)

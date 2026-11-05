@@ -223,6 +223,11 @@ input[type="number"], input[type="datetime-local"], input[type="file"], textarea
   font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
   text-wrap: balance;
 }
+.rp-bold {
+  margin: 0 0 14px; padding-left: 14px; border-left: 5px solid var(--rp-gold);
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  font-size: 1.4rem; font-weight: 800; line-height: 1.2; text-wrap: balance;
+}
 .rp-text { margin: 0 0 12px; max-width: 34em; font-size: 1.05rem; line-height: 1.65; }
 .rp-fair { margin: 0; max-width: 34em; color: var(--rp-soft); font-size: 0.95rem; line-height: 1.6; }
 
