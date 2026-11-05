@@ -7,7 +7,7 @@ export default function Privacy() {
           Template text. Replace the bracketed parts and have the campaign owner review it before launch.
         </p>
         <h2>What we collect</h2>
-        <p>Your name, phone number, coaching center and your quiz answers and score.</p>
+        <p>Your name, phone number, coaching center, optional gender, and your quiz answers and score.</p>
         <h2>Why we collect it</h2>
         <p>To run the quiz, record weekly participation, check raffle eligibility, select winners and contact winners.</p>
         <h2>How your phone number is used</h2>

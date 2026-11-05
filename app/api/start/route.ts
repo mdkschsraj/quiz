@@ -4,7 +4,7 @@ import { normalizeName, normalizePhone, sameName } from "@/lib/phone";
 import { finalizeIfExpired, shuffle, Attempt } from "@/lib/attempts";
 
 export async function POST(req: Request) {
-  let body: { name?: string; phone?: string; centerSlug?: string };
+  let body: { name?: string; phone?: string; centerSlug?: string; gender?: string };
   try {
     body = await req.json();
   } catch {
@@ -14,6 +14,7 @@ export async function POST(req: Request) {
   const name = normalizeName(body.name ?? "");
   const phone = normalizePhone(body.phone ?? "");
   const slug = (body.centerSlug ?? "").trim();
+  const gender = body.gender === "male" || body.gender === "female" ? body.gender : null; // optional
 
   if (name.length < 2 || name.length > 80) {
     return NextResponse.json({ error: "Please enter your full name." }, { status: 400 });
@@ -42,11 +43,16 @@ export async function POST(req: Request) {
 
   // Silent phone matching: create the student only if the number is new.
   await supabase.from("students")
-    .upsert({ phone, name }, { onConflict: "phone", ignoreDuplicates: true });
+    .upsert({ phone, name, gender }, { onConflict: "phone", ignoreDuplicates: true });
   const { data: student } = await supabase
-    .from("students").select("id, name, name_conflict").eq("phone", phone).single();
+    .from("students").select("id, name, name_conflict, gender").eq("phone", phone).single();
   if (!student) {
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  }
+
+  // Fill in gender only if it was never given; never overwrite an existing value.
+  if (!student.gender && gender) {
+    await supabase.from("students").update({ gender }).eq("id", student.id);
   }
 
   // Keep the original name; flag a mismatch for admin review instead of overwriting.

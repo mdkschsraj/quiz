@@ -1,44 +1,47 @@
-# College Quiz & Raffle (V1: student flow)
+# College Quiz & Raffle
 
 Next.js 15 + Supabase + Vercel.
 
-## What is in this milestone
+> Status: the code has unit tests for phone matching, CSV import, draw selection and the student-list grouping. It has not yet been through a full `npm run build` or a browser test. Run the setup below, try each page, and report anything that breaks.
 
+## What is in here
+
+**Students**
 - Coaching-center QR links: `/c/<slug>`
-- Registration (name, phone, center) with silent phone matching, no OTP
-- Timed quiz with random questions, server-enforced deadline and scoring
-- Auto-submit at zero, manual submit any time
-- Weekly entry tracking: one eligible entry per student per week (database unique constraint)
+- Registration (name, phone, optional gender, center) with silent phone matching, no OTP
+- Timed quiz with random questions, server-enforced deadline and scoring, auto-submit at zero
 - Result page with score and participation confirmation
 
-Not built yet: draw configuration, secure winner selection, public animated draw page, reports.
+**Admin (`/admin`)**
+- Overview, Centers (create a center, unique QR as PNG/SVG, scan and participation counts)
+- Weeks (when the quiz is open, quiz time, questions per quiz)
+- Questions (CSV upload and manual add)
+- Students (list with date range, center, gender, status; unique or every Start Quiz click; CSV download)
+- Flagged (name conflicts)
+- Draws (date range, groups, run, publish, winners CSV)
 
-## Admin panel (`/admin`)
+**Public**
+- `/draw/<id>`: animated winner reveal, visible only after the admin publishes the draw
 
-- Pages: overview, centers (create a center, see and download its unique QR as PNG/SVG, scan and participation counts), campaign weeks, question bank (CSV upload + manual add), name conflicts.
-- Sign in with a Supabase Auth user whose email is listed in `ADMIN_EMAILS`. Create the user yourself in the Supabase dashboard (Authentication, Users, Add user) and set the password there. No credentials exist in the code.
-- Every admin page and every admin action re-checks the session and the allowlist on the server.
-- The session cookie lasts at most one hour; sign in again after that.
-- CSV columns: `question, option_a, option_b, option_c, option_d, correct` (A to D or 1 to 4). Import is all-or-nothing: if any row is invalid, nothing is imported and the first problems are shown. Template: `public/question-template.csv`.
-- Questions are switched off, never deleted, because past attempts refer to them.
-- Week times are entered in Bangladesh time (UTC+6).
+Not built yet: reports beyond the student list and winners CSV, rate limiting on registration, final privacy text.
 
 ## Setup
 
-1. Create a Supabase project. In the SQL editor run `supabase/migrations/001_init.sql`, then `002_scans.sql`, then (for testing only) `supabase/seed.sql`.
-2. Copy `.env.example` to `.env.local` and fill it in (including `ADMIN_EMAILS`), and create the admin user in Supabase Authentication.
-3. `npm install`
-4. `npm run dev`, then open `http://localhost:3000/c/center-a`
-5. `npm test` runs the phone and CSV tests.
-6. QR codes are created and downloaded in Admin, Centers. `scripts/generate-qr.mjs` is an optional bulk alternative.
+1. Create a Supabase project. In the SQL editor run, in order: `supabase/migrations/001_init.sql`, `002_scans.sql`, `003_draws.sql`, `004_gender.sql`. For testing only, also run `supabase/seed.sql`.
+2. Copy `.env.example` to `.env.local` and fill it in (including `ADMIN_EMAILS`).
+3. In Supabase, Authentication, Users, Add user: create your admin login with the same email as `ADMIN_EMAILS`.
+4. `npm install`, then `npm run dev`.
+5. Open `http://localhost:3000/admin`, sign in, then try `/c/center-a`.
+6. `npm test` runs the unit tests.
 
-## QR scan tracking
+## How the pieces fit
 
-The center page reports a scan once it loads in a real browser. Admin, Centers shows per center: scans, estimated unique scanners (anonymous cookie), students who started and students who finished the quiz. A scan is a page load, not a person, so treat the numbers as estimates.
-
-## Deploying to Vercel
-
-Add the five environment variables from `.env.example` in Vercel project settings. `vercel.json` runs a daily safety-net job that closes abandoned attempts.
+- **Weeks** only control when the quiz is open and its settings. A student can start a quiz only while an active week is running.
+- **Start Quiz click**: the student record and an attempt are created at that moment, so the Students page shows people who never finished (status "Started only").
+- **Draws** have their own date range. When a draw runs, every student with a submitted quiz inside that range is in the pool once, with their best score in the range. Each group has a minimum score percentage (100 = all correct), a winner count and a prize.
+- Groups are drawn strictest first. With "one student can win in more than one group" set to No, a winner is removed from later groups. With "winners of earlier draws can win again" set to No, previous winners are excluded.
+- Winners are chosen on the server with a cryptographically secure shuffle and saved with a snapshot of the eligible pool. The public page only reveals the saved result. A draw can run once; if a run fails it is rolled back.
+- Publishing a draw shows each winner's name, a masked phone number, center and score on the public page.
 
 ## Rules implemented
 
@@ -46,16 +49,26 @@ Add the five environment variables from `.env.example` in Vercel project setting
 | --- | --- |
 | New phone | Student record + attempt created |
 | Known phone | Student record reused, new attempt |
-| Unfinished attempt this week | Resumed, not duplicated |
+| Unfinished attempt (same week) | Resumed, not duplicated |
 | Different name on a known phone | Original name kept, `students.name_conflict` set, typed name kept on the attempt |
-| Second completed attempt in a week | Allowed, but only the first completed attempt creates the entry |
-| Timeout | Server closes the attempt with a 5 second network grace; answers saved after that are rejected |
+| Gender | Optional; set only if empty, never overwritten |
+| Retake | Allowed; the best score inside a draw's date range counts |
+| Timeout | Server closes the attempt with a 5 second network grace; later answers are rejected |
 
 Phone numbers are Bangladeshi mobiles, normalized to `01XXXXXXXXX`. Phone matching is not identity proof.
+
+The older `entries` table (one entry per student per week) is still filled in but no longer used by draws or the result page.
+
+## Deploying to Vercel
+
+Add the five environment variables from `.env.example` in Vercel project settings. `vercel.json` runs a daily safety-net job that closes abandoned attempts. Set `NEXT_PUBLIC_SITE_URL` to the live address before downloading QR codes.
 
 ## Security notes
 
 - All database access is server-side with the service-role key; RLS is on with no public policies.
 - Correct answers are never sent to the browser.
-- The attempt ID (a random UUID) is the only credential for a quiz page. Anyone with the link can view that result.
+- Every admin page, action and download re-checks the admin session and email allowlist.
+- The attempt ID (a random UUID) is the only credential for a quiz page.
+- Exported CSV cells starting with `=`, `+`, `-` or `@` are prefixed so spreadsheets do not run them as formulas.
 - No rate limiting yet. Add one (for example on `/api/start`) before a large public launch.
+- Gender and phone numbers are personal data, and many participants may be under 18. Finalise the privacy notice and consent approach before launch.

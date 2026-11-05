@@ -67,3 +67,10 @@ export function parseQuestions(csv: string): { valid: ParsedQuestion[]; errors: 
   }
   return { valid, errors };
 }
+
+// Quotes a value for CSV and defuses spreadsheet formulas (=, +, -, @ at the start of a cell).
+export function csvCell(v: string | number | null | undefined): string {
+  let s = v === null || v === undefined ? "" : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return `"${s.replace(/"/g, '""')}"`;
+}

@@ -20,6 +20,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <Link href="/admin/centers">Centers</Link>
         <Link href="/admin/weeks">Weeks</Link>
         <Link href="/admin/questions">Questions</Link>
+        <Link href="/admin/students">Students</Link>
+        <Link href="/admin/draws">Draws</Link>
         <Link href="/admin/flagged">Flagged</Link>
         <span className="spacer" />
         <span className="muted">{email}</span>
