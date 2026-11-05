@@ -42,17 +42,23 @@ export async function POST(req: Request) {
   }
 
   // Silent phone matching: create the student only if the number is new.
-  await supabase.from("students")
-    .upsert({ phone, name, gender }, { onConflict: "phone", ignoreDuplicates: true });
-  const { data: student } = await supabase
-    .from("students").select("id, name, name_conflict, gender").eq("phone", phone).single();
+  const { error: upsertError } = await supabase.from("students")
+    .upsert({ phone, name }, { onConflict: "phone", ignoreDuplicates: true });
+  if (upsertError) console.error("start: student upsert failed:", upsertError.message);
+  const { data: student, error: studentError } = await supabase
+    .from("students").select("id, name, name_conflict").eq("phone", phone).single();
   if (!student) {
+    console.error("start: student lookup failed:", studentError?.message);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 
-  // Fill in gender only if it was never given; never overwrite an existing value.
-  if (!student.gender && gender) {
-    await supabase.from("students").update({ gender }).eq("id", student.id);
+  // Optional gender, kept separate so it can never block a student from starting.
+  // Only fills an empty value; never overwrites. Errors (for example a column that
+  // has not been added yet) are ignored on purpose.
+  if (gender) {
+    const { error: genderError } = await supabase.from("students")
+      .update({ gender }).eq("id", student.id).is("gender", null);
+    if (genderError) console.error("start: gender not saved:", genderError.message);
   }
 
   // Keep the original name; flag a mismatch for admin review instead of overwriting.
@@ -89,6 +95,7 @@ export async function POST(req: Request) {
   }).select("id").single();
 
   if (error || !attempt) {
+    console.error("start: attempt insert failed:", error?.message);
     return NextResponse.json({ error: "Could not start the quiz. Please try again." }, { status: 500 });
   }
   return NextResponse.json({ attemptId: attempt.id });

@@ -9,11 +9,18 @@ const SHOW = 200;
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireAdmin();
   const f = parseFilters(await searchParams);
-  const [{ data: centerRows }, { rows, truncated }] = await Promise.all([
-    db().from("centers").select("id, name").order("name"),
-    loadAttemptRows(f),
-  ]);
+  const { data: centerRows } = await db().from("centers").select("id, name").order("name");
   const centers = (centerRows ?? []) as { id: string; name: string }[];
+
+  // Show the real problem on the page instead of a blank "Application error".
+  let rows: Awaited<ReturnType<typeof loadAttemptRows>>["rows"] = [];
+  let truncated = false;
+  let loadError = "";
+  try {
+    ({ rows, truncated } = await loadAttemptRows(f));
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Unknown error";
+  }
 
   const unique = aggregate(rows);
   const startedOnly = rows.filter((r) => r.status === "in_progress").length;
@@ -71,6 +78,11 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         </div>
       </form>
 
+      {loadError && (
+        <div className="notice" role="alert">
+          The student list could not be loaded: {loadError}. If this mentions &quot;gender&quot;, run supabase/migrations/004_gender.sql in the Supabase SQL editor.
+        </div>
+      )}
       {truncated && <div className="notice" role="alert">Showing the newest {MAX_ROWS.toLocaleString()} starts only. Narrow the date range to see everything.</div>}
 
       <div className="grid" style={{ marginBottom: 16 }}>

@@ -10,7 +10,7 @@ Next.js 15 + Supabase + Vercel.
 - Coaching-center QR links: `/c/<slug>`
 - Registration (name, phone, optional gender, center) with silent phone matching, no OTP
 - Timed quiz with random questions, server-enforced deadline and scoring, auto-submit at zero
-- Result page with score and participation confirmation
+- Result page designed as a raffle ticket: score, a warm "watch the live draw" message, and a Facebook follow/share button (set `NEXT_PUBLIC_FACEBOOK_URL`)
 
 **Admin (`/admin`)**
 - Overview, Centers (create a center, unique QR as PNG/SVG, scan and participation counts)
@@ -61,7 +61,7 @@ The older `entries` table (one entry per student per week) is still filled in bu
 
 ## Deploying to Vercel
 
-Add the five environment variables from `.env.example` in Vercel project settings. `vercel.json` runs a daily safety-net job that closes abandoned attempts. Set `NEXT_PUBLIC_SITE_URL` to the live address before downloading QR codes.
+Add the environment variables from `.env.example` in Vercel project settings. `vercel.json` runs a daily safety-net job that closes abandoned attempts. Set `NEXT_PUBLIC_SITE_URL` to the live address before downloading QR codes.
 
 ## Security notes
 

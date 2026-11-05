@@ -12,6 +12,7 @@ export type Attempt = {
   answers: Record<string, number>;
   started_at: string;
   expires_at: string;
+  submitted_name: string;
   submitted_at: string | null;
   status: "in_progress" | "submitted" | "expired";
   score: number | null;
