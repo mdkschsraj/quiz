@@ -10,6 +10,7 @@ async function createDraw(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const starts = bdToIso(String(formData.get("starts_at") ?? ""));
   const ends = bdToIso(String(formData.get("ends_at") ?? ""));
+  const drawAt = bdToIso(String(formData.get("draw_at") ?? "")); // optional
   const multi = formData.get("multi") === "yes";
   const previous = formData.get("previous") === "yes";
   const back = (m: string) => redirect("/admin/draws?msg=" + encodeURIComponent(m));
@@ -18,7 +19,7 @@ async function createDraw(formData: FormData) {
   if (!starts || !ends || new Date(ends!) <= new Date(starts!)) back("Check the start and end dates.");
 
   const { data, error } = await db().from("draws").insert({
-    name, starts_at: starts, ends_at: ends, allow_multi_group_wins: multi, allow_previous_winners: previous,
+    name, starts_at: starts, ends_at: ends, draw_at: drawAt, allow_multi_group_wins: multi, allow_previous_winners: previous,
   }).select("id").single();
   if (error || !data) back("Could not create the draw.");
   redirect(`/admin/draws/${data!.id}?msg=` + encodeURIComponent("Draw created. Now add its groups."));
@@ -49,6 +50,12 @@ export default async function DrawsPage({ searchParams }: { searchParams: Promis
           </div>
           <div className="row" style={{ marginTop: 10 }}>
             <div>
+              <label htmlFor="draw_at">Live draw date and time (optional, Bangladesh time)</label>
+              <input id="draw_at" name="draw_at" type="datetime-local" />
+            </div>
+          </div>
+          <div className="row" style={{ marginTop: 10 }}>
+            <div>
               <label htmlFor="multi">Can one student win in more than one group?</label>
               <select id="multi" name="multi" defaultValue="no"><option value="no">No</option><option value="yes">Yes</option></select>
             </div>
@@ -61,6 +68,7 @@ export default async function DrawsPage({ searchParams }: { searchParams: Promis
         </form>
         <p className="muted" style={{ marginTop: 10 }}>
           Everyone who submitted a quiz inside the date range is in the pool, once, with their best score in that range.
+          If you set a live draw time, students see a countdown to it, with the prizes, until you run the draw.
         </p>
       </div>
 

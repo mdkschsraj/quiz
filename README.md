@@ -18,21 +18,31 @@ Next.js 15 + Supabase + Vercel.
 - Questions (CSV upload and manual add)
 - Students (list with date range, center, gender, status; unique or every Start Quiz click; CSV download)
 - Flagged (name conflicts)
-- Draws (date range, groups, run, publish, winners CSV)
+- Draws (date range, live draw time, groups with prize photos, run, publish, winners CSV, winner photos with a permission tick, prize-delivered mark)
 
 **Public**
+- Registration page: a one-line "last draw / next live draw" teaser above the form and a Previous winners strip below it
+- Result page: countdown to the next live draw with the prize photo, then the Facebook button
+- `/winners`: every published draw with winner photos, names, centers and a "Prize delivered" badge
 - `/draw/<id>`: animated winner reveal, visible only after the admin publishes the draw
 
 Not built yet: reports beyond the student list and winners CSV, rate limiting on registration, final privacy text.
 
 ## Setup
 
-1. Create a Supabase project. In the SQL editor run, in order: `supabase/migrations/001_init.sql`, `002_scans.sql`, `003_draws.sql`, `004_gender.sql`. For testing only, also run `supabase/seed.sql`.
+1. Create a Supabase project. In the SQL editor run, in order: `supabase/migrations/001_init.sql`, `002_scans.sql`, `003_draws.sql`, `004_gender.sql`, `005_showcase.sql` (the last one also creates the photo storage bucket). For testing only, also run `supabase/seed.sql`.
 2. Copy `.env.example` to `.env.local` and fill it in (including `ADMIN_EMAILS`).
 3. In Supabase, Authentication, Users, Add user: create your admin login with the same email as `ADMIN_EMAILS`.
 4. `npm install`, then `npm run dev`.
 5. Open `http://localhost:3000/admin`, sign in, then try `/c/center-a`.
 6. `npm test` runs the unit tests.
+
+## Trust and engagement
+
+- **Next draw:** give a draft draw a live draw date and time in Admin, Draws. While it is still a draft, students see a countdown to it, with the group prizes and their photos, on the result page. It disappears once you run the draw.
+- **Winner photos:** after a draw is run, open it in Admin and upload each winner's photo (JPG, PNG or WebP, up to 4 MB). You must tick "Permission to publish this photo" (a parent or guardian's, for students under 18). Photos only appear publicly after you publish the draw and only where that permission was recorded.
+- **Prize delivered:** mark each winner when the prize is handed over; the Winners page then shows a "Prize delivered" badge.
+- Photos are stored in the Supabase Storage bucket `campaign-photos`, which is public so the pages can display them. Anyone with a photo's link can view it; do not upload anything you would not publish.
 
 ## How the pieces fit
 

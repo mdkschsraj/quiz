@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { finalizeIfExpired, getAttempt } from "@/lib/attempts";
 import { facebookUrl } from "@/lib/site";
+import { getNextDraw } from "@/lib/publicDraws";
+import NextDrawCard from "@/app/_components/NextDrawCard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   const brand = (process.env.NEXT_PUBLIC_BRAND_NAME ?? "").trim() || "College Quiz Challenge";
 
   const fb = facebookUrl();
+  const next = await getNextDraw();
   const share = fb ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fb)}` : null;
 
   return (
@@ -52,6 +55,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
             Winners are chosen by computer from everyone who qualifies, and the results are shown publicly.
           </p>
 
+          {next && <NextDrawCard draw={next} />}
+
           {fb ? (
             <>
               <a className="rp-cta" href={fb} target="_blank" rel="noopener noreferrer">
@@ -67,6 +72,7 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           ) : (
             <p className="rp-tip">Keep an eye on our Facebook page for the live draw.</p>
           )}
+          <p className="rp-tip"><a className="rp-share" href="/winners">See past winners and prizes</a></p>
         </section>
       </div>
     </div>

@@ -248,3 +248,56 @@ input[type="number"], input[type="datetime-local"], input[type="file"], textarea
   to { transform: none; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .rp-ticket { animation: none; } }
+
+/* Next draw card (inherits colours from its surroundings) */
+.nd {
+  margin-top: 22px; padding: 18px 16px; border-radius: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.nd-title { margin: 0; font-size: 1.15rem; font-weight: 700; font-family: var(--font-display), var(--font-body), system-ui, sans-serif; }
+.nd-when { margin: 2px 0 14px; opacity: 0.8; }
+.nd-count { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; min-height: 68px; }
+.nd-unit {
+  display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 12px;
+  background: color-mix(in srgb, var(--rp-gold, #ffb81c) 22%, transparent);
+}
+.nd-num { font-size: 1.9rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; font-family: var(--font-display), var(--font-body), system-ui, sans-serif; }
+.nd-label { margin-top: 4px; font-size: 0.8rem; opacity: 0.8; }
+.nd-live { margin: 0; font-weight: 700; font-size: 1.1rem; }
+.nd-prizes { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.nd-prize { display: flex; align-items: center; gap: 12px; }
+.nd-prize img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; flex: 0 0 auto; }
+.nd-prize strong { display: block; font-size: 1.05rem; }
+.nd-group { display: block; font-size: 0.9rem; opacity: 0.75; }
+
+/* Registration teaser */
+.rg-teaser { font-weight: 700; margin: 0 0 12px; padding-left: 12px; border-left: 4px solid #ffb81c; }
+
+/* Winners */
+.wide-ish { max-width: 760px; }
+.wc-draw { margin-bottom: 28px; }
+.wc-title { margin: 0; font-size: 1.35rem; }
+.wc-date { margin: 2px 0 12px; color: var(--muted); font-size: 0.95rem; }
+.wc-group { margin-bottom: 18px; }
+.wc-prizehead { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.wc-prizehead img { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; }
+.wc-sub { color: var(--muted); font-size: 0.9rem; }
+.wc-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.wc-card {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  padding: 14px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+}
+.wc-photo { border-radius: 50%; object-fit: cover; border: 3px solid #ffb81c; }
+.wc-initial {
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: color-mix(in srgb, var(--brand) 18%, transparent); font-weight: 800; font-size: 1.4rem;
+}
+.wc-badge {
+  margin-top: 4px; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+  border: 1px solid var(--ok); color: var(--ok);
+}
+.wc-strip h2 { margin-bottom: 4px; }
+.wc-row { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 12px; }
+.wc-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.wc-mini .wc-sub { font-size: 0.8rem; }

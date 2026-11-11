@@ -8,3 +8,11 @@ export function bdToIso(local: string): string | null {
 export function fmtBd(iso: string): string {
   return new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" });
 }
+
+// ISO timestamp -> value for <input type="datetime-local"> in Bangladesh time.
+export function isoToBdInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("sv-SE", { timeZone: "Asia/Dhaka" }).replace(" ", "T").slice(0, 16);
+}

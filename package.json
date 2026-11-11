@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test lib/phone.test.ts lib/csv.test.ts lib/draw.test.ts lib/studentAgg.test.ts",
+    "test": "node --experimental-strip-types --test lib/phone.test.ts lib/csv.test.ts lib/draw.test.ts lib/studentAgg.test.ts lib/showcase.test.ts",
     "qr": "node scripts/generate-qr.mjs"
   },
   "dependencies": {

@@ -1,6 +1,10 @@
 import { db } from "./supabase";
 
 export type WinnerRow = {
+  winnerId: string;
+  photoPath: string | null;
+  photoConsent: boolean;
+  deliveredAt: string | null;
   groupId: string;
   position: number;
   studentId: string;
@@ -39,7 +43,7 @@ export function maskPhone(phone: string): string {
 export async function loadWinners(drawId: string): Promise<WinnerRow[]> {
   const s = db();
   const { data: w, error } = await s.from("draw_winners")
-    .select("group_id, position, student_id, attempt_id, score, total")
+    .select("id, group_id, position, student_id, attempt_id, score, total, photo_path, photo_consent, prize_delivered_at")
     .eq("draw_id", drawId).order("position");
   if (error) throw new Error(error.message);
   const rows = w ?? [];
@@ -66,6 +70,10 @@ export async function loadWinners(drawId: string): Promise<WinnerRow[]> {
   }
 
   return rows.map((r) => ({
+    winnerId: r.id,
+    photoPath: r.photo_path ?? null,
+    photoConsent: Boolean(r.photo_consent),
+    deliveredAt: r.prize_delivered_at ?? null,
     groupId: r.group_id,
     position: r.position,
     studentId: r.student_id,
