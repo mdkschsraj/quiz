@@ -4,7 +4,7 @@ import { aggregate, statusLabel, genderLabel } from "./studentAgg.ts";
 import type { AttemptRow } from "./studentAgg.ts";
 
 const row = (over: Partial<AttemptRow>): AttemptRow => ({
-  studentId: "s1", name: "Rahim", phone: "01712345678", gender: null, center: "A",
+  studentId: "s1", name: "Rahim", phone: "01712345678", gender: null, admissionType: null, center: "A",
   startedAt: "2026-11-01T10:00:00Z", status: "submitted", score: 5, total: 10, ...over,
 });
 
@@ -27,6 +27,14 @@ test("one row per student, counting every start including unfinished ones", () =
   assert.equal(s2.attempts, 1);
   assert.equal(s2.finished, 0);
   assert.equal(s2.bestScore, null);
+});
+
+test("admission type is carried onto the student row", () => {
+  const out = aggregate([
+    row({ startedAt: "2026-11-01T10:00:00Z", admissionType: null }),
+    row({ startedAt: "2026-11-02T10:00:00Z", admissionType: "nursing" }),
+  ]);
+  assert.equal(out[0].admissionType, "nursing");
 });
 
 test("a student who only clicked Start still appears", () => {

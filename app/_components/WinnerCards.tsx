@@ -1,27 +1,48 @@
 import { fmtBd } from "@/lib/time";
-import type { PublicDraw, PublicWinner } from "@/lib/publicDraws";
+import type { PublicDraw, PublicGroup, PublicWinner } from "@/lib/publicDraws";
 
-function Avatar({ w, size }: { w: PublicWinner; size: number }) {
-  return w.photoUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className="wc-photo" src={w.photoUrl} alt={`${w.name}, winner`} width={size} height={size} loading="lazy" decoding="async" />
-  ) : (
-    <span className="wc-initial" style={{ width: size, height: size }} aria-hidden="true">
-      {Array.from(w.name.trim())[0]?.toUpperCase() ?? "?"}
-    </span>
+const dateOnly = (iso: string) => fmtBd(iso).split(",")[0];
+
+// A medium-sized photo tile. Three fit in a row at every screen width.
+function Tile({ w, sub, showBadge }: { w: PublicWinner; sub?: string; showBadge?: boolean }) {
+  return (
+    <li className="ws-tile">
+      <div className="ws-img">
+        {w.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={w.photoUrl} alt={`${w.name}, winner`} loading="lazy" decoding="async" />
+        ) : (
+          <span className="ws-initial" aria-hidden="true">{Array.from(w.name.trim())[0]?.toUpperCase() ?? "?"}</span>
+        )}
+      </div>
+      <strong>{w.name}</strong>
+      {sub && <span className="ws-sub">{sub}</span>}
+      {showBadge && w.delivered && <span className="wc-badge">Prize delivered</span>}
+    </li>
   );
 }
 
-const firstName = (n: string) => n.trim().split(/\s+/)[0] ?? n;
+const NAMES_PER_GROUP = 8;
 
-// Full list: every published draw, grouped by prize.
+function NamesLine({ g }: { g: PublicGroup }) {
+  const shown = g.winners.slice(0, NAMES_PER_GROUP).map((w) => w.name);
+  const more = g.winners.length - shown.length;
+  return (
+    <li>
+      <strong>{g.prize || g.name}:</strong> {shown.join(", ")}
+      {more > 0 && <> and {more} more</>}
+    </li>
+  );
+}
+
+// Full list for the Winners page: every published draw, grouped by prize.
 export function WinnersList({ draws }: { draws: PublicDraw[] }) {
   return (
     <>
       {draws.map((d) => (
         <section className="wc-draw" key={d.id} aria-label={d.name}>
           <h2 className="wc-title">{d.name}</h2>
-          {d.publishedAt && <p className="wc-date">{fmtBd(d.publishedAt).split(",")[0]}</p>}
+          {d.heldAt && <p className="wc-date">{dateOnly(d.heldAt)}</p>}
           {d.groups.map((g) => (
             <div key={g.id} className="wc-group">
               <div className="wc-prizehead">
@@ -32,15 +53,8 @@ export function WinnersList({ draws }: { draws: PublicDraw[] }) {
                 <span><strong>{g.prize || g.name}</strong>{g.prize && <span className="wc-sub"> · {g.name}</span>}</span>
               </div>
               {g.winners.length === 0 && <p className="wc-sub">No eligible students in this group.</p>}
-              <ul className="wc-grid">
-                {g.winners.map((w, i) => (
-                  <li className="wc-card" key={i}>
-                    <Avatar w={w} size={72} />
-                    <strong>{w.name}</strong>
-                    {w.center && <span className="wc-sub">{w.center}</span>}
-                    {w.delivered && <span className="wc-badge">Prize delivered</span>}
-                  </li>
-                ))}
+              <ul className="ws-photos">
+                {g.winners.map((w, i) => <Tile key={i} w={w} sub={w.center} showBadge />)}
               </ul>
             </div>
           ))}
@@ -50,25 +64,35 @@ export function WinnersList({ draws }: { draws: PublicDraw[] }) {
   );
 }
 
-// Compact strip for the registration page: faces and first names from the latest draw.
+const MAX_PHOTOS = 9; // three rows of three
+
+// Registration page, below the Start Quiz button: the latest draw's name, date, winner count and
+// names, then their photos, three per row.
 export function WinnersStrip({ draw }: { draw: PublicDraw }) {
-  const all = draw.groups.flatMap((g) => g.winners.map((w) => ({ w, prize: g.prize || g.name })));
-  if (all.length === 0) return null;
-  const shown = [...all].sort((a, b) => Number(Boolean(b.w.photoUrl)) - Number(Boolean(a.w.photoUrl))).slice(0, 6);
+  const groups = draw.groups.filter((g) => g.winners.length > 0);
+  const total = groups.reduce((n, g) => n + g.winners.length, 0);
+  if (total === 0) return null;
+
+  const photos = groups
+    .flatMap((g) => g.winners.filter((w) => w.photoUrl).map((w) => ({ w, prize: g.prize || g.name })))
+    .slice(0, MAX_PHOTOS);
+
   return (
-    <section className="card wc-strip" aria-label="Previous winners">
-      <h2>Previous winners</h2>
-      <p className="muted" style={{ marginBottom: 12 }}>{draw.name}: real students, real prizes.</p>
-      <ul className="wc-row">
-        {shown.map(({ w, prize }, i) => (
-          <li key={i} className="wc-mini">
-            <Avatar w={w} size={56} />
-            <strong>{firstName(w.name)}</strong>
-            <span className="wc-sub">{prize}</span>
-          </li>
-        ))}
+    <section className="card ws" aria-label="Previous raffle winners">
+      <h2 className="ws-title">Previous raffle: {draw.name}</h2>
+      <p className="ws-meta">
+        {draw.heldAt ? `Held on ${dateOnly(draw.heldAt)}. ` : ""}
+        {total} {total === 1 ? "winner" : "winners"}.
+      </p>
+      <ul className="ws-names">
+        {groups.map((g) => <NamesLine key={g.id} g={g} />)}
       </ul>
-      <p style={{ margin: "14px 0 0" }}><a href="/winners"><strong>See all winners</strong></a></p>
+      {photos.length > 0 && (
+        <ul className="ws-photos">
+          {photos.map(({ w, prize }, i) => <Tile key={i} w={w} sub={prize} />)}
+        </ul>
+      )}
+      <p className="ws-more"><a href="/winners"><strong>See all winners</strong></a></p>
     </section>
   );
 }

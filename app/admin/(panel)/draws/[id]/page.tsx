@@ -284,6 +284,14 @@ export default async function DrawDetail({ params, searchParams }: { params: Pro
         )}
       </div>
 
+      <div className="card">
+        <h2>Eligible students</h2>
+        <p className="muted">
+          Everyone who finished a quiz inside this draw&apos;s dates, one row each, with their best score. The file shows which groups each student qualifies for, who won, and who won an earlier draw, so you can use it for small gifts. It works before and after the draw is run. Students who only clicked Start Quiz are not included; use the Students page for them.
+        </p>
+        <a className="smallbtn" href={`/admin/draws/${id}/eligible`}>Download eligible students (CSV)</a>
+      </div>
+
       {draw.status === "draft" && groups.length > 0 && (
         <div className="card">
           <h2>Run the draw</h2>

@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ADMISSION_TYPES } from "@/lib/admission";
 
-export default function RegisterForm({ centerSlug, centerName }: { centerSlug: string; centerName: string }) {
+const selectStyle: React.CSSProperties = {
+  width: "100%", padding: 12, fontSize: "1rem", border: "1px solid var(--line)",
+  borderRadius: 10, background: "var(--bg)", color: "var(--ink)",
+};
+
+// The coaching center is not shown here: it comes from the QR code link and is recorded in the background.
+export default function RegisterForm({ centerSlug }: { centerSlug: string }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [admissionType, setAdmissionType] = useState("");
   const [gender, setGender] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -14,13 +22,17 @@ export default function RegisterForm({ centerSlug, centerName }: { centerSlug: s
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
+    if (!admissionType) {
+      setError("Please choose your admission type.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
       const res = await fetch("/api/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, centerSlug, gender }),
+        body: JSON.stringify({ name, phone, centerSlug, gender, admissionType }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -45,16 +57,19 @@ export default function RegisterForm({ centerSlug, centerName }: { centerSlug: s
       <input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="01XXXXXXXXX"
         value={phone} onChange={(e) => setPhone(e.target.value)} required />
 
+      <label htmlFor="admission">Admission type</label>
+      <select id="admission" value={admissionType} onChange={(e) => setAdmissionType(e.target.value)}
+        style={selectStyle} required>
+        <option value="">Select admission type</option>
+        {ADMISSION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+      </select>
+
       <label htmlFor="gender">Gender (optional)</label>
-      <select id="gender" value={gender} onChange={(e) => setGender(e.target.value)}
-        style={{ width: "100%", padding: 12, fontSize: "1rem", border: "1px solid var(--line)", borderRadius: 10, background: "var(--bg)", color: "var(--ink)" }}>
+      <select id="gender" value={gender} onChange={(e) => setGender(e.target.value)} style={selectStyle}>
         <option value="">Prefer not to say</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
       </select>
-
-      <label>Coaching center</label>
-      <div className="readonly">{centerName}</div>
 
       {error && <div className="error" role="alert">{error}</div>}
       <button className="btn" type="submit" disabled={busy}>

@@ -36,7 +36,7 @@ export default async function CenterPage({ params }: { params: Promise<{ slug: s
             {next && <>Next live draw: {fmtBd(next.drawAt)}.</>}
           </p>
         )}
-        <RegisterForm centerSlug={center.slug} centerName={center.name} />
+        <RegisterForm centerSlug={center.slug} />
         <p className="muted" style={{ marginTop: 16 }}>
           Your details will be used to manage quiz participation and raffle eligibility.{" "}
           <a href="/privacy">See the campaign privacy notice.</a>

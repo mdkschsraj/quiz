@@ -11,7 +11,7 @@ export type NextDraw = {
 
 export type PublicWinner = { name: string; center: string; photoUrl: string | null; delivered: boolean };
 export type PublicGroup = { id: string; name: string; prize: string; imageUrl: string | null; winners: PublicWinner[] };
-export type PublicDraw = { id: string; name: string; publishedAt: string | null; groups: PublicGroup[] };
+export type PublicDraw = { id: string; name: string; publishedAt: string | null; heldAt: string | null; groups: PublicGroup[] };
 
 // The next announced draw: still a draft, with a live draw time that has not passed
 // (shown for up to an hour after, so "starting now" can appear). Never throws: public pages
@@ -42,7 +42,7 @@ export async function getNextDraw(): Promise<NextDraw | null> {
 // Published draws, newest first. A winner's photo is only included when permission was recorded.
 export async function getPublishedDraws(limit: number): Promise<PublicDraw[]> {
   try {
-    const { data: draws } = await db().from("draws").select("id, name, published_at")
+    const { data: draws } = await db().from("draws").select("id, name, published_at, drawn_at, draw_at")
       .eq("status", "published").order("published_at", { ascending: false }).limit(limit);
     const out: PublicDraw[] = [];
     for (const d of draws ?? []) {
@@ -54,6 +54,7 @@ export async function getPublishedDraws(limit: number): Promise<PublicDraw[]> {
         id: d.id,
         name: d.name,
         publishedAt: d.published_at,
+        heldAt: d.draw_at ?? d.drawn_at ?? d.published_at ?? null, // when the draw took place
         groups: (groups ?? []).map((g: { id: string; name: string; prize: string; prize_image_path: string | null }) => ({
           id: g.id,
           name: g.name,

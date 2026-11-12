@@ -5,6 +5,7 @@ export type AttemptRow = {
   name: string;
   phone: string;
   gender: string | null;
+  admissionType: string | null;
   center: string;
   startedAt: string; // ISO
   status: string;    // in_progress | submitted | expired
@@ -17,6 +18,7 @@ export type UniqueRow = {
   name: string;
   phone: string;
   gender: string | null;
+  admissionType: string | null;
   center: string;       // center of the most recent attempt
   attempts: number;
   finished: number;
@@ -45,13 +47,14 @@ export function aggregate(rows: AttemptRow[]): UniqueRow[] {
     const cur = map.get(r.studentId);
     if (!cur) {
       map.set(r.studentId, {
-        studentId: r.studentId, name: r.name, phone: r.phone, gender: r.gender, center: r.center,
+        studentId: r.studentId, name: r.name, phone: r.phone, gender: r.gender, admissionType: r.admissionType, center: r.center,
         attempts: 1, finished: done ? 1 : 0, firstStart: r.startedAt, lastStart: r.startedAt,
         bestScore: done ? r.score : null, bestTotal: done ? r.total : null,
       });
       continue;
     }
     cur.attempts += 1;
+    if (!cur.admissionType && r.admissionType) cur.admissionType = r.admissionType;
     if (done) cur.finished += 1;
     if (r.startedAt < cur.firstStart) cur.firstStart = r.startedAt;
     if (r.startedAt > cur.lastStart) { cur.lastStart = r.startedAt; cur.center = r.center; }

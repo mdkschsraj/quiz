@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
 import { normalizeName, normalizePhone, sameName } from "@/lib/phone";
 import { finalizeIfExpired, shuffle, Attempt } from "@/lib/attempts";
+import { parseAdmission } from "@/lib/admission";
 
 export async function POST(req: Request) {
-  let body: { name?: string; phone?: string; centerSlug?: string; gender?: string };
+  let body: { name?: string; phone?: string; centerSlug?: string; gender?: string; admissionType?: string };
   try {
     body = await req.json();
   } catch {
@@ -15,12 +16,17 @@ export async function POST(req: Request) {
   const phone = normalizePhone(body.phone ?? "");
   const slug = (body.centerSlug ?? "").trim();
   const gender = body.gender === "male" || body.gender === "female" ? body.gender : null; // optional
+  const admissionType = parseAdmission(body.admissionType); // required
 
   if (name.length < 2 || name.length > 80) {
     return NextResponse.json({ error: "Please enter your full name." }, { status: 400 });
   }
   if (!phone) {
     return NextResponse.json({ error: "Please enter a valid Bangladeshi mobile number." }, { status: 400 });
+  }
+
+  if (!admissionType) {
+    return NextResponse.json({ error: "Please choose your admission type." }, { status: 400 });
   }
 
   const supabase = db();
@@ -59,6 +65,13 @@ export async function POST(req: Request) {
     const { error: genderError } = await supabase.from("students")
       .update({ gender }).eq("id", student.id).is("gender", null);
     if (genderError) console.error("start: gender not saved:", genderError.message);
+  }
+
+  // Admission type: only fills an empty value, so a later attempt never overwrites it.
+  {
+    const { error: admissionError } = await supabase.from("students")
+      .update({ admission_type: admissionType }).eq("id", student.id).is("admission_type", null);
+    if (admissionError) console.error("start: admission type not saved:", admissionError.message);
   }
 
   // Keep the original name; flag a mismatch for admin review instead of overwriting.

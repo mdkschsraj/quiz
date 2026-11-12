@@ -8,7 +8,7 @@ Next.js 15 + Supabase + Vercel.
 
 **Students**
 - Coaching-center QR links: `/c/<slug>`
-- Registration (name, phone, optional gender, center) with silent phone matching, no OTP
+- Registration (name, phone, admission type, optional gender; the coaching center is not shown, it comes from the QR link) with silent phone matching, no OTP
 - Timed quiz with random questions, server-enforced deadline and scoring, auto-submit at zero
 - Result page designed as a raffle ticket: score, a warm "watch the live draw" message, and a bold "watch the live draw on Facebook" message and a Facebook follow/share button (default page `schs.rajshahi`, override with `NEXT_PUBLIC_FACEBOOK_URL`). The page is also linked on the registration page and after the public draw reveal
 
@@ -30,12 +30,17 @@ Not built yet: reports beyond the student list and winners CSV, rate limiting on
 
 ## Setup
 
-1. Create a Supabase project. In the SQL editor run, in order: `supabase/migrations/001_init.sql`, `002_scans.sql`, `003_draws.sql`, `004_gender.sql`, `005_showcase.sql` (the last one also creates the photo storage bucket). For testing only, also run `supabase/seed.sql`.
+1. Create a Supabase project. In the SQL editor run, in order: `supabase/migrations/001_init.sql`, `002_scans.sql`, `003_draws.sql`, `004_gender.sql`, `005_showcase.sql` (also creates the photo storage bucket), `006_admission_type.sql`. For testing only, also run `supabase/seed.sql`.
 2. Copy `.env.example` to `.env.local` and fill it in (including `ADMIN_EMAILS`).
 3. In Supabase, Authentication, Users, Add user: create your admin login with the same email as `ADMIN_EMAILS`.
 4. `npm install`, then `npm run dev`.
 5. Open `http://localhost:3000/admin`, sign in, then try `/c/center-a`.
 6. `npm test` runs the unit tests.
+
+## Admission type and eligible students
+
+- Registration has a required **Admission type** dropdown: Medical, Nursing, A Unit, Other Unit. It is saved on the student the first time and never overwritten. The Students page can filter by it and the CSV exports include it.
+- Admin, Draws, open a draw, **Download eligible students (CSV)**: everyone who finished a quiz inside the draw's dates, one row each with their best score, phone, gender, admission type, center, which groups they qualify for, and whether they won (this draw or an earlier one). Use it for small gifts.
 
 ## Trust and engagement
 

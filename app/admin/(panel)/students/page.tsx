@@ -2,6 +2,7 @@ import { db } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/admin";
 import { fmtBd } from "@/lib/time";
 import { aggregate, genderLabel, statusLabel } from "@/lib/studentAgg";
+import { ADMISSION_TYPES, admissionLabel } from "@/lib/admission";
 import { filtersToQuery, loadAttemptRows, MAX_ROWS, parseFilters } from "@/lib/studentList";
 
 const SHOW = 200;
@@ -56,6 +57,16 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
             </select>
           </div>
           <div>
+            <label htmlFor="admission">Admission type</label>
+            <select id="admission" name="admission" defaultValue={f.admission}>
+              <option value="">All</option>
+              {ADMISSION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              <option value="unspecified">Not given</option>
+            </select>
+          </div>
+        </div>
+        <div className="row" style={{ marginTop: 10 }}>
+          <div>
             <label htmlFor="status">Quiz status</label>
             <select id="status" name="status" defaultValue={f.status}>
               <option value="">Started or finished</option>
@@ -80,7 +91,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
 
       {loadError && (
         <div className="notice" role="alert">
-          The student list could not be loaded: {loadError}. If this mentions &quot;gender&quot;, run supabase/migrations/004_gender.sql in the Supabase SQL editor.
+          The student list could not be loaded: {loadError}. If this mentions &quot;gender&quot;, run supabase/migrations/004_gender.sql; if it mentions &quot;admission_type&quot;, run supabase/migrations/006_admission_type.sql, both in the Supabase SQL editor.
         </div>
       )}
       {truncated && <div className="notice" role="alert">Showing the newest {MAX_ROWS.toLocaleString()} starts only. Narrow the date range to see everything.</div>}
@@ -102,31 +113,31 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
       <div className="card" style={{ overflowX: "auto" }}>
         {f.view === "unique" ? (
           <table className="t">
-            <thead><tr><th>Name</th><th>Phone</th><th>Gender</th><th>Center (latest)</th><th>Starts</th><th>Finished</th><th>Best score</th><th>Last started</th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>Gender</th><th>Admission</th><th>Center (latest)</th><th>Starts</th><th>Finished</th><th>Best score</th><th>Last started</th></tr></thead>
             <tbody>
               {unique.slice(0, SHOW).map((u) => (
                 <tr key={u.studentId}>
-                  <td>{u.name}</td><td>{u.phone}</td><td>{genderLabel(u.gender)}</td><td>{u.center}</td>
+                  <td>{u.name}</td><td>{u.phone}</td><td>{genderLabel(u.gender)}</td><td>{admissionLabel(u.admissionType)}</td><td>{u.center}</td>
                   <td>{u.attempts}</td><td>{u.finished}</td>
                   <td>{u.bestScore === null ? "-" : `${u.bestScore}/${u.bestTotal}`}</td>
                   <td>{fmtBd(u.lastStart)}</td>
                 </tr>
               ))}
-              {unique.length === 0 && <tr><td colSpan={8} className="muted">No students match these filters.</td></tr>}
+              {unique.length === 0 && <tr><td colSpan={9} className="muted">No students match these filters.</td></tr>}
             </tbody>
           </table>
         ) : (
           <table className="t">
-            <thead><tr><th>Name</th><th>Phone</th><th>Gender</th><th>Center</th><th>Started</th><th>Status</th><th>Score</th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>Gender</th><th>Admission</th><th>Center</th><th>Started</th><th>Status</th><th>Score</th></tr></thead>
             <tbody>
               {rows.slice(0, SHOW).map((r, i) => (
                 <tr key={i}>
-                  <td>{r.name}</td><td>{r.phone}</td><td>{genderLabel(r.gender)}</td><td>{r.center}</td>
+                  <td>{r.name}</td><td>{r.phone}</td><td>{genderLabel(r.gender)}</td><td>{admissionLabel(r.admissionType)}</td><td>{r.center}</td>
                   <td>{fmtBd(r.startedAt)}</td><td>{statusLabel(r.status)}</td>
                   <td>{r.status === "in_progress" || r.score === null ? "-" : `${r.score}/${r.total}`}</td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={7} className="muted">No starts match these filters.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8} className="muted">No starts match these filters.</td></tr>}
             </tbody>
           </table>
         )}

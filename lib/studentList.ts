@@ -1,6 +1,7 @@
 import { db } from "./supabase";
 import { fetchAll } from "./drawData";
 import { isUuid } from "./attempts";
+import { ADMISSION_TYPES } from "./admission";
 import type { AttemptRow } from "./studentAgg";
 
 export type Filters = {
@@ -8,6 +9,7 @@ export type Filters = {
   to: string;       // YYYY-MM-DD or ""
   center: string;   // center id or ""
   gender: string;   // male | female | unspecified | ""
+  admission: string; // medical | nursing | a_unit | other_unit | unspecified | ""
   status: string;   // started | finished | ""
   view: "unique" | "attempts";
 };
@@ -23,6 +25,7 @@ export function parseFilters(sp: Record<string, string | undefined>): Filters {
     to: DATE.test(sp.to ?? "") ? (sp.to as string) : "",
     center: sp.center && isUuid(sp.center) ? sp.center : "",
     gender: pick(sp.gender, ["male", "female", "unspecified"]),
+    admission: pick(sp.admission, [...ADMISSION_TYPES.map((t) => t.value), "unspecified"]),
     status: pick(sp.status, ["started", "finished"]),
     view: sp.view === "attempts" ? "attempts" : "unique",
   };
@@ -40,9 +43,9 @@ const one = <T,>(x: Joined<T>): T | null => (Array.isArray(x) ? x[0] ?? null : x
 // Every row here is a click on "Start Quiz": the attempt is created at that moment,
 // so people who never finished are included (status "in_progress").
 export async function loadAttemptRows(f: Filters): Promise<{ rows: AttemptRow[]; truncated: boolean }> {
-  const select = f.gender
-    ? "id, student_id, started_at, status, score, total, students!inner(name, phone, gender), centers(name)"
-    : "id, student_id, started_at, status, score, total, students(name, phone, gender), centers(name)";
+  // "!inner" makes the filter on the student's own columns drop attempts that do not match.
+  const join = f.gender || f.admission ? "students!inner" : "students";
+  const select = `id, student_id, started_at, status, score, total, ${join}(name, phone, gender, admission_type), centers(name)`;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const build = (from: number, to: number): any => {
@@ -55,12 +58,14 @@ export async function loadAttemptRows(f: Filters): Promise<{ rows: AttemptRow[];
     if (f.status === "finished") q = q.neq("status", "in_progress");
     if (f.gender === "male" || f.gender === "female") q = q.eq("students.gender", f.gender);
     if (f.gender === "unspecified") q = q.is("students.gender", null);
+    if (f.admission && f.admission !== "unspecified") q = q.eq("students.admission_type", f.admission);
+    if (f.admission === "unspecified") q = q.is("students.admission_type", null);
     return q.range(from, to);
   };
 
   type Raw = {
     student_id: string; started_at: string; status: string; score: number | null; total: number | null;
-    students: Joined<{ name: string; phone: string; gender: string | null }>;
+    students: Joined<{ name: string; phone: string; gender: string | null; admission_type: string | null }>;
     centers: Joined<{ name: string }>;
   };
   const raw = await fetchAll<Raw>(build);
@@ -72,6 +77,7 @@ export async function loadAttemptRows(f: Filters): Promise<{ rows: AttemptRow[];
       name: s?.name ?? "",
       phone: s?.phone ?? "",
       gender: s?.gender ?? null,
+      admissionType: s?.admission_type ?? null,
       center: one(r.centers)?.name ?? "",
       startedAt: r.started_at,
       status: r.status,
